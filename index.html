@@ -504,11 +504,25 @@ function goToMe(){
         startGeolocationWatch();
     }
 
+    const overlay = document.getElementById('location-overlay');
+    if(overlay){
+        overlay.style.display = 'block';
+    }
+
     if(currentLocation){
         map.flyTo(currentLocation, 19, {
             animate:true,
             duration:1
         });
+    } else {
+        alert("Waiting for GPS... Please allow location access.");
+    }
+}
+
+</script>
+
+</body>
+</html>
 
         if(userMarker){
             userMarker.openPopup();
