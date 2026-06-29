@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Campsite Live Map</title>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+
+<style>
+html,body{
+    margin:0;
+    padding:0;
+    width:100%;
+    height:100%;
+    font-family:Arial,Helvetica,sans-serif;
+}
+
+#map{
+    width:100%;
+    height:100%;
+}
+
+.header{
+    position:absolute;
+    top:15px;
+    left:50%;
+    transform:translateX(-50%);
+    z-index:1000;
+
+    background:white;
+    padding:12px 20px;
+    border-radius:12px;
+
+    font-weight:bold;
+    box-shadow:0 4px 10px rgba(0,0,0,.3);
+}
+
+.locate{
+    position:absolute;
+    bottom:20px;
+    right:20px;
+    z-index:1000;
+
+    border:none;
+    border-radius:10px;
+
+    padding:14px 18px;
+
+    font-size:16px;
+    cursor:pointer;
+
+    background:#1976d2;
+    color:white;
+
+    box-shadow:0 4px 12px rgba(0,0,0,.25);
+}
+
+.leaflet-popup-content{
+    font-size:15px;
+}
+</style>
+
+</head>
+<body>
+
+<div class="header">
+🏕️ Penn Meadow Farm Map
+</div>
+
+<button class="locate" onclick="goToMe()">
+📍 Locate Me
+</button>
+
+<div id="map"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+
+// ----------------------------------------------------
+// CHANGE THESE TO YOUR CAMPSITE CENTRE
+// ----------------------------------------------------
+const campsite = [51.620281,-0.673179];
+
+// ----------------------------------------------------
+
+const map = L.map('map').setView(campsite,18);
+
+// Satellite
+L.tileLayer(
+'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+{
+maxZoom:20,
+attribution:'Esri'
+}).addTo(map);
+
+// Hybrid Labels
+L.tileLayer(
+'https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
+{
+maxZoom:20
+}).addTo(map);
+
+// Campsite Boundary
+L.circle(campsite,{
+radius:5,
+color:"green",
+fillOpacity:0.2
+}).addTo(map);
+
+// Facilities
+
+const facilities=[
+
+{
+name:"Reception",
+emoji:"🏠",
+coords:[51.620281,-0.673179],
+info:"Check-in and campsite information."
+},
+
+{
+name:"Toilets",
+emoji:"🚻",
+coords:[51.622009, -0.670466],
+info:"24 hour toilet block."
+},
+
+{
+name:"Toilets/ Showers",
+emoji:"🚿",
+coords:[51.621798, -0.670513],
+info:"24 hour Hot showers."
+},
+
+{
+name:"Kitchen",
+emoji:"🧺",
+coords:[51.622428, -0.671808],
+info:"Tea, Coffee, Gas Stove."
+},
+
+{
+name:"Shop",
+emoji:"🛒",
+coords:[51.50738,-0.12808],
+info:"Camping supplies."
+},
+
+{
+name:"Play Area",
+emoji:"🛝",
+coords:[51.50773,-0.12764],
+info:"Children's play area."
+}
+
+];
+
+facilities.forEach(f=>{
+
+L.marker(f.coords)
+.addTo(map)
+.bindPopup(`
+<h2>${f.emoji} ${f.name}</h2>
+<p>${f.info}</p>
+`);
+
+});
+
+// ---------------------------
+// LIVE GPS
+// ---------------------------
+
+let userMarker;
+let accuracyCircle;
+let currentLocation=null;
+
+if("geolocation" in navigator){
+
+navigator.geolocation.watchPosition(
+
+(position)=>{
+
+const lat=position.coords.latitude;
+const lng=position.coords.longitude;
+const accuracy=position.coords.accuracy;
+
+currentLocation=[lat,lng];
+
+if(!userMarker){
+
+userMarker=L.marker(currentLocation)
+.addTo(map)
+.bindPopup("📍 You are here");
+
+accuracyCircle=L.circle(currentLocation,{
+radius:accuracy,
+color:"#0078ff",
+fillColor:"#0078ff",
+fillOpacity:0.15
+}).addTo(map);
+
+map.setView(currentLocation,18);
+
+}else{
+
+userMarker.setLatLng(currentLocation);
+
+accuracyCircle.setLatLng(currentLocation);
+accuracyCircle.setRadius(accuracy);
+
+}
+
+},
+
+(error)=>{
+
+console.log(error);
+
+},
+
+{
+enableHighAccuracy:true,
+maximumAge:1000,
+timeout:10000
+}
+
+);
+
+}
+
+// Locate Button
+
+function goToMe(){
+
+if(currentLocation){
+
+map.flyTo(currentLocation,19,{
+animate:true,
+duration:1
+});
+
+if(userMarker){
+userMarker.openPopup();
+}
+
+}else{
+
+alert("Waiting for GPS... Please allow location access.");
+
+}
+
+}
+
+</script>
+
+</body>
+</html>
