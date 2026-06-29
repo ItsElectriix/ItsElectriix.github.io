@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <title>Penn Meadow Farm</title>
+<link rel="icon" href="pennmeadow.png" type="image/png">
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 
@@ -29,12 +30,22 @@ html,body{
     transform:translateX(-50%);
     z-index:1000;
 
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+
     background:white;
     padding:12px 20px;
     border-radius:12px;
 
     font-weight:bold;
     box-shadow:0 4px 10px rgba(0,0,0,.3);
+}
+
+.header-logo{
+    width:1.2em;
+    height:auto;
+    display:block;
 }
 
 .locate{
@@ -189,7 +200,8 @@ html,body{
 <body>
 
 <div class="header">
-🏕️ Penn Meadow Farm Map
+    <img src="pennmeadow.png" class="header-logo" alt="Penn Meadow Farm logo">
+    <span>Penn Meadow Farm Map</span>
 </div>
 
 
