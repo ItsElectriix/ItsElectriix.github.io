@@ -230,19 +230,12 @@ const campsite = [51.6216111,-0.6714664];
 
 const map = L.map('map').setView(campsite,17);
 
-// Satellite
+// Google Earth imagery
 L.tileLayer(
-'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+'https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',
 {
 maxZoom:20,
-attribution:'Esri'
-}).addTo(map);
-
-// Hybrid Labels
-L.tileLayer(
-'https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
-{
-maxZoom:20
+attribution:'Google Earth'
 }).addTo(map);
 
 
