@@ -454,82 +454,68 @@ buildDropdown(pubs, pubControls, pubMarkers);
 let userMarker;
 let accuracyCircle;
 let currentLocation=null;
+let geoWatchId = null;
 
-if("geolocation" in navigator){
+function startGeolocationWatch(){
+    if(!("geolocation" in navigator) || geoWatchId !== null){
+        return;
+    }
 
-navigator.geolocation.watchPosition(
+    geoWatchId = navigator.geolocation.watchPosition(
+        (position)=>{
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+            const accuracy = position.coords.accuracy;
 
-(position)=>{
+            currentLocation = [lat, lng];
 
-const lat=position.coords.latitude;
-const lng=position.coords.longitude;
-const accuracy=position.coords.accuracy;
+            if(!userMarker){
+                userMarker = L.marker(currentLocation)
+                    .addTo(map)
+                    .bindPopup("📍 You are here");
 
-currentLocation=[lat,lng];
-
-if(!userMarker){
-
-userMarker=L.marker(currentLocation)
-.addTo(map)
-.bindPopup("📍 You are here");
-
-accuracyCircle=L.circle(currentLocation,{
-radius:accuracy,
-color:"#0078ff",
-fillColor:"#0078ff",
-fillOpacity:0.15
-}).addTo(map);
-
-map.setView(currentLocation,18);
-
-}else{
-
-userMarker.setLatLng(currentLocation);
-
-accuracyCircle.setLatLng(currentLocation);
-accuracyCircle.setRadius(accuracy);
-
-}
-
-},
-
-(error)=>{
-
-console.log(error);
-
-},
-
-{
-enableHighAccuracy:true,
-maximumAge:1000,
-timeout:10000
-}
-
-);
-
+                accuracyCircle = L.circle(currentLocation, {
+                    radius: accuracy,
+                    color: "#0078ff",
+                    fillColor: "#0078ff",
+                    fillOpacity: 0.15
+                }).addTo(map);
+            } else {
+                userMarker.setLatLng(currentLocation);
+                accuracyCircle.setLatLng(currentLocation);
+                accuracyCircle.setRadius(accuracy);
+            }
+        },
+        (error)=>{
+            console.log(error);
+        },
+        {
+            enableHighAccuracy:true,
+            maximumAge:1000,
+            timeout:10000
+        }
+    );
 }
 
 // Locate Button
 
 function goToMe(){
+    if(!geoWatchId){
+        startGeolocationWatch();
+    }
 
-if(currentLocation){
+    if(currentLocation){
+        map.flyTo(currentLocation, 19, {
+            animate:true,
+            duration:1
+        });
 
-map.flyTo(currentLocation,19,{
-animate:true,
-duration:1
-});
-
-if(userMarker){
-userMarker.openPopup();
-}
-
-}else{
-
-alert("Waiting for GPS... Please allow location access.");
-
-}
-
+        if(userMarker){
+            userMarker.openPopup();
+        }
+    } else {
+        alert("Waiting for GPS... Please allow location access.");
+    }
 }
 
 </script>
