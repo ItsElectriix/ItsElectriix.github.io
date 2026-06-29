@@ -220,11 +220,11 @@ html,body{
 // ----------------------------------------------------
 // CHANGE THESE TO YOUR CAMPSITE CENTRE
 // ----------------------------------------------------
-const campsite = [51.620281,-0.673179];
+const campsite = [51.6216111,-0.6714664];
 
 // ----------------------------------------------------
 
-const map = L.map('map').setView(campsite,18);
+const map = L.map('map').setView(campsite,17);
 
 // Satellite
 L.tileLayer(
@@ -241,12 +241,7 @@ L.tileLayer(
 maxZoom:20
 }).addTo(map);
 
-// Campsite Boundary
-L.circle(campsite,{
-radius:5,
-color:"green",
-fillOpacity:0.2
-}).addTo(map);
+
 
 // -------------------------// COLOURED MARKERS// -------------------------
 function colouredMarker(colour){
@@ -297,11 +292,11 @@ const facilities=[
         info:"Camping supplies."
     },
     {
-        name:"Play Area",
-        emoji:"🛝",
+        name:"Sauna",
+        emoji:"🧖",
         colour:"yellow",
-        coords:[51.620800,-0.672400],
-        info:"Children's play area."
+        coords:[51.6213425,-0.6714941],
+        info:"Relaxing sauna facility."
     }
 ];
 
@@ -328,20 +323,28 @@ const pubs=[
         emoji:"🍺",
         colour:"gold",
         coords:[51.6186309,-0.6689087],
-        info:"Local pub and drinks."
+        info:"Local pub and drinks. <br> 4 minute walk through the woods <br> Follow the path from the top of the road Near the Toilets"
     },
     {
         name:"The Crown",
         emoji:"🍺",
         colour:"gold",
-        coords:[51.6312287,-0.6765708],
-        info:"Local pub and drinks."
+        coords:[51.6314635,-0.6765915],
+        info:"Local pub and drinks. <br> 3 minute drive or 30 minute walk. "
     },
 ];
 
 const facilityMarkers = [];
 const animalMarkers = [];
 const pubMarkers = [];
+
+function formatInfo(text){
+    return text
+        .trim()
+        .split(/\n\s*\n/)
+        .map(par => par.trim().replace(/\n/g, '<br>'))
+        .join('</p><p>');
+}
 
 function createMarkers(items, markerArray){
     items.forEach(item=>{
@@ -351,7 +354,7 @@ function createMarkers(items, markerArray){
         .addTo(map)
         .bindPopup(`
             <h2>${item.emoji} ${item.name}</h2>
-            <p>${item.info}</p>
+            <p>${formatInfo(item.info)}</p>
             <p><a href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(item.coords.join(','))}&travelmode=driving" target="_blank" rel="noreferrer">Get directions</a></p>
         `);
 
