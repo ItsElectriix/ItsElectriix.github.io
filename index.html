@@ -57,6 +57,71 @@ html,body{
     box-shadow:0 4px 12px rgba(0,0,0,.25);
 }
 
+.dropdown{
+    position:absolute;
+    top:80px;
+    left:50%;
+    transform:translateX(-50%);
+    z-index:1000;
+    width:calc(100% - 40px);
+    max-width:360px;
+}
+
+.dropdown-button{
+    width:100%;
+    border:none;
+    border-radius:12px;
+    padding:12px 16px;
+    background:#ffffffcc;
+    color:#333;
+    cursor:pointer;
+    font-size:16px;
+    text-align:left;
+    box-shadow:0 4px 12px rgba(0,0,0,0.18);
+}
+
+.dropdown.open .dropdown-button{
+    background:#eef1f5;
+}
+
+.dropdown-menu{
+    display:none;
+    margin-top:8px;
+    background:rgba(255,255,255,0.96);
+    border-radius:14px;
+    box-shadow:0 6px 18px rgba(0,0,0,0.18);
+    max-height:320px;
+    overflow:auto;
+    padding:10px;
+}
+
+.dropdown.open .dropdown-menu{
+    display:block;
+}
+
+.facility-item{
+    display:flex;
+    align-items:center;
+    width:100%;
+    border:none;
+    background:#f8f9fb;
+    margin-bottom:8px;
+    padding:10px 14px;
+    border-radius:10px;
+    cursor:pointer;
+    text-align:left;
+    font-size:14px;
+    box-shadow:0 2px 6px rgba(0,0,0,0.12);
+}
+
+.facility-item:last-child{
+    margin-bottom:0;
+}
+
+.facility-item:hover{
+    background:#e8edf4;
+}
+
 .leaflet-popup-content{
     font-size:15px;
 }
@@ -72,6 +137,10 @@ html,body{
 <button class="locate" onclick="goToMe()">
 📍 Locate Me
 </button>
+<div class="dropdown" id="facility-dropdown">
+    <button class="dropdown-button" onclick="toggleDropdown()">Facility key ▼</button>
+    <div class="dropdown-menu" id="facility-controls"></div>
+</div>
 
 <div id="map"></div>
 
@@ -110,63 +179,106 @@ color:"green",
 fillOpacity:0.2
 }).addTo(map);
 
-// Facilities
-
-const facilities=[
-
-{
-name:"Reception",
-emoji:"🏠",
-coords:[51.620281,-0.673179],
-info:"Check-in and campsite information."
-},
-
-{
-name:"Toilets",
-emoji:"🚻",
-coords:[51.622009, -0.670466],
-info:"24 hour toilet block."
-},
-
-{
-name:"Toilets/ Showers",
-emoji:"🚿",
-coords:[51.621798, -0.670513],
-info:"24 hour Hot showers."
-},
-
-{
-name:"Kitchen",
-emoji:"🧺",
-coords:[51.622428, -0.671808],
-info:"Tea, Coffee, Gas Stove."
-},
-
-{
-name:"Shop",
-emoji:"🛒",
-coords:[51.50738,-0.12808],
-info:"Camping supplies."
-},
-
-{
-name:"Play Area",
-emoji:"🛝",
-coords:[51.50773,-0.12764],
-info:"Children's play area."
+// -------------------------// COLOURED MARKERS// -------------------------
+function colouredMarker(colour){
+    return L.icon({
+        iconUrl:`https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-${colour}.png`,
+        shadowUrl:"https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+        iconSize:[25,41],
+        iconAnchor:[12,41],
+        popupAnchor:[1,-34],
+        shadowSize:[41,41]
+    });
 }
 
+const facilities=[
+    {
+        name:"Reception",
+        emoji:"🏠",
+        colour:"green",
+        coords:[51.620281,-0.673179],
+        info:"Check-in and campsite information."
+    },
+    {
+        name:"Toilets",
+        emoji:"🚻",
+        colour:"blue",
+        coords:[51.622009, -0.670466],
+        info:"24 hour toilet block."
+    },
+    {
+        name:"Toilets/ Showers",
+        emoji:"🚿",
+        colour:"violet",
+        coords:[51.621798, -0.670513],
+        info:"24 hour Hot showers."
+    },
+    {
+        name:"Kitchen",
+        emoji:"🧺",
+        colour:"orange",
+        coords:[51.622428, -0.671808],
+        info:"Tea, Coffee, Gas Stove."
+    },
+    {
+        name:"Shop",
+        emoji:"🛒",
+        colour:"red",
+        coords:[51.50738,-0.12808],
+        info:"Camping supplies."
+    },
+    {
+        name:"Play Area",
+        emoji:"🛝",
+        colour:"yellow",
+        coords:[51.50773,-0.12764],
+        info:"Children's play area."
+    }
 ];
 
+const facilityMarkers = [];
+
 facilities.forEach(f=>{
+    const marker = L.marker(f.coords,{    
+        icon: colouredMarker(f.colour)
+    })
+    .addTo(map)
+    .bindPopup(`
+        <h2>${f.emoji} ${f.name}</h2>
+        <p>${f.info}</p>
+        <p><a href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(f.coords.join(','))}&travelmode=driving" target="_blank" rel="noreferrer">Get directions</a></p>
+    `);
 
-L.marker(f.coords)
-.addTo(map)
-.bindPopup(`
-<h2>${f.emoji} ${f.name}</h2>
-<p>${f.info}</p>
-`);
+    facilityMarkers.push({facility:f, marker});
+});
 
+const controls = document.getElementById('facility-controls');
+const dropdown = document.getElementById('facility-dropdown');
+
+function toggleDropdown(){
+    dropdown.classList.toggle('open');
+}
+
+document.addEventListener('click', (event)=>{
+    if(!dropdown.contains(event.target)){
+        dropdown.classList.remove('open');
+    }
+});
+
+facilities.forEach(f=>{
+    const item = document.createElement('button');
+    item.type = 'button';
+    item.className = 'facility-item';
+    item.textContent = `${f.emoji} ${f.name}`;
+    item.addEventListener('click', ()=>{
+        dropdown.classList.remove('open');
+        map.flyTo(f.coords, 18, {animate:true, duration:1});
+        const entry = facilityMarkers.find(item=>item.facility === f);
+        if(entry){
+            entry.marker.openPopup();
+        }
+    });
+    controls.appendChild(item);
 });
 
 // ---------------------------
