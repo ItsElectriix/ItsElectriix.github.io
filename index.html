@@ -180,6 +180,30 @@ html,body{
     display:inline-block;
 }
 
+.distance-panel{
+    position:absolute;
+    top:70px;
+    right:20px;
+    z-index:1000;
+    background:white;
+    padding:10px 12px;
+    border-radius:12px;
+    box-shadow:0 4px 10px rgba(0,0,0,0.2);
+    font-size:13px;
+    min-width:150px;
+    max-width:220px;
+}
+
+.distance-panel strong{
+    display:block;
+    margin-bottom:6px;
+    font-size:14px;
+}
+
+.distance-panel div{
+    line-height:1.4;
+}
+
 .leaflet-popup-content{
     font-size:15px;
 }
@@ -209,6 +233,10 @@ html,body{
         <button class="dropdown-button" onclick="toggleDropdown('pub-dropdown')">Pubs ▼</button>
         <div class="dropdown-menu" id="pub-controls"></div>
     </div>
+</div>
+<div class="distance-panel" id="distance-panel">
+    <strong>Distance</strong>
+    <div id="distance-content">Waiting for location...</div>
 </div>
 
 <div id="map"></div>
@@ -329,7 +357,14 @@ const pubs=[
         colour:"gold",
         coords:[51.6186309,-0.6689087],
         info:"Local pub and drinks."
-    }
+    },
+    {
+        name:"The Crown",
+        emoji:"🍺",
+        colour:"gold",
+        coords:[51.6312287,-0.6765708],
+        info:"Local pub and drinks."
+    },
 ];
 
 const facilityMarkers = [];
@@ -360,6 +395,40 @@ const facilityControls = document.getElementById('facility-controls');
 const animalControls = document.getElementById('animal-controls');
 const pubControls = document.getElementById('pub-controls');
 const dropdowns = Array.from(document.querySelectorAll('.dropdown'));
+const allItems = [...facilities, ...animals, ...pubs];
+
+function getDistanceKm(lat1, lon1, lat2, lon2){
+    const toRad = x => x * Math.PI / 180;
+    const R = 6371;
+    const dLat = toRad(lat2 - lat1);
+    const dLon = toRad(lon2 - lon1);
+    const a = Math.sin(dLat/2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon/2) ** 2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+function updateDistancePanel(focusItem = null){
+    const content = document.getElementById('distance-content');
+    if(!currentLocation){
+        content.innerHTML = 'Waiting for location...';
+        return;
+    }
+
+    const distances = allItems.map(item => ({
+        item,
+        distance: getDistanceKm(currentLocation[0], currentLocation[1], item.coords[0], item.coords[1])
+    })).sort((a,b)=>a.distance-b.distance);
+
+    let html = '';
+    if(focusItem){
+        const focused = distances.find(d => d.item === focusItem);
+        if(focused){
+            html += `<div><strong>${focusItem.emoji} ${focusItem.name}</strong>: ${focused.distance.toFixed(2)} km</div>`;
+        }
+    }
+    html += '<div style="margin-top:8px;font-weight:600;">Nearest</div>';
+    html += distances.slice(0,4).map(d=>`<div>${d.item.emoji} ${d.item.name}: ${d.distance.toFixed(2)} km</div>`).join('');
+    content.innerHTML = html;
+}
 
 function toggleDropdown(id){
     dropdowns.forEach(dropdown=>{
@@ -390,6 +459,7 @@ function buildDropdown(items, controls, markers){
             if(entry){
                 entry.marker.openPopup();
             }
+            updateDistancePanel(item);
         });
         controls.appendChild(button);
     });
