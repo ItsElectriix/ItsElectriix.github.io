@@ -197,8 +197,12 @@ html,body{
 📍 Locate Me
 </button>
 <div class="dropdown-row">
+    <div class="dropdown" id="place-dropdown">
+        <button class="dropdown-button" onclick="toggleDropdown('place-dropdown')">Information ▼</button>
+        <div class="dropdown-menu" id="place-controls"></div>
+    </div>
     <div class="dropdown" id="facility-dropdown">
-        <button class="dropdown-button" onclick="toggleDropdown('facility-dropdown')">Facilitys ▼</button>
+        <button class="dropdown-button" onclick="toggleDropdown('facility-dropdown')">Facilities ▼</button>
         <div class="dropdown-menu" id="facility-controls"></div>
     </div>
     <div class="dropdown" id="animal-dropdown">
@@ -255,7 +259,7 @@ function colouredMarker(colour){
     });
 }
 
-const facilities=[
+const places=[
     {
         name:"Entrance",
         emoji:"🏠",
@@ -268,8 +272,18 @@ const facilities=[
         emoji:"✅",
         colour:"green",
         coords:[51.6215673,-0.6711711],
-        info:"Camping supplies."
+        info:"Check-in point for arrivals, wristbands, and welcome information."
     },
+    {
+        name:"Fire Assembly",
+        emoji:"🚨",
+        colour:"red",
+        coords:[51.6217366,-0.6713559],
+        info:"Fire assembly point. Meet here in an emergency and wait for staff instructions."
+    }
+];
+
+const facilities=[
     {
         name:"Toilets",
         emoji:"🚻",
@@ -278,7 +292,7 @@ const facilities=[
         info:"24 hour toilet block."
     },
     {
-        name:"Toilets/ Showers",
+        name:"Showers/ Toilets",
         emoji:"🚿",
         colour:"blue",
         coords:[51.621798, -0.670513],
@@ -287,7 +301,7 @@ const facilities=[
     {
         name:"Kitchen",
         emoji:"🧺",
-        colour:"red",
+        colour:"orange",
         coords:[51.622428, -0.671808],
         info:"Tea, Coffee, Gas Stove."
     },
@@ -349,6 +363,7 @@ const pubs=[
 ];
 
 const facilityMarkers = [];
+const placeMarkers = [];
 const animalMarkers = [];
 const pubMarkers = [];
 
@@ -376,11 +391,13 @@ function createMarkers(items, markerArray){
     });
 }
 
+createMarkers(places, placeMarkers);
 createMarkers(facilities, facilityMarkers);
 createMarkers(animals, animalMarkers);
 createMarkers(pubs, pubMarkers);
 
 const facilityControls = document.getElementById('facility-controls');
+const placeControls = document.getElementById('place-controls');
 const animalControls = document.getElementById('animal-controls');
 const pubControls = document.getElementById('pub-controls');
 const dropdowns = Array.from(document.querySelectorAll('.dropdown'));
@@ -419,6 +436,7 @@ function buildDropdown(items, controls, markers){
     });
 }
 
+buildDropdown(places, placeControls, placeMarkers);
 buildDropdown(facilities, facilityControls, facilityMarkers);
 buildDropdown(animals, animalControls, animalMarkers);
 buildDropdown(pubs, pubControls, pubMarkers);
