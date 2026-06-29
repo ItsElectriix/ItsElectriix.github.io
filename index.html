@@ -46,9 +46,9 @@ html,body{
     border:none;
     border-radius:10px;
 
-    padding:14px 18px;
+    padding:10px 14px;
 
-    font-size:16px;
+    font-size:15px;
     cursor:pointer;
 
     background:#1976d2;
@@ -57,42 +57,70 @@ html,body{
     box-shadow:0 4px 12px rgba(0,0,0,.25);
 }
 
-.dropdown{
+.dropdown-row{
     position:absolute;
     top:80px;
     left:50%;
     transform:translateX(-50%);
     z-index:1000;
-    width:calc(100% - 40px);
-    max-width:360px;
+    display:flex;
+    gap:8px;
+    flex-wrap:nowrap;
+    justify-content:center;
+    padding:0 10px;
+    width:auto;
+    max-width:calc(100% - 40px);
+}
+
+.dropdown{
+    position:relative;
+    flex:0 0 auto;
+    width:auto;
+    min-width:max-content;
+    max-width:none;
+    display:inline-flex;
 }
 
 .dropdown-button{
-    width:100%;
+    display:inline-flex;
+    width:auto;
+    min-width:max-content;
     border:none;
-    border-radius:12px;
-    padding:12px 16px;
+    border-radius:10px;
+    padding:8px 10px;
     background:#ffffffcc;
     color:#333;
     cursor:pointer;
-    font-size:16px;
+    font-size:13px;
     text-align:left;
-    box-shadow:0 4px 12px rgba(0,0,0,0.18);
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    box-shadow:0 3px 8px rgba(0,0,0,0.14);
+}
+
+.dropdown-menu{
+    position:absolute;
+    left:0;
+    top:calc(100% + 6px);
+    width:auto;
+    min-width:max-content;
+    display:none;
+    background:rgba(255,255,255,0.96);
+    border-radius:12px;
+    box-shadow:0 4px 12px rgba(0,0,0,0.14);
+    max-height:260px;
+    overflow:auto;
+    padding:8px;
+    z-index:1001;
+}
+
+.dropdown.open .dropdown-menu{
+    display:block;
 }
 
 .dropdown.open .dropdown-button{
     background:#eef1f5;
-}
-
-.dropdown-menu{
-    display:none;
-    margin-top:8px;
-    background:rgba(255,255,255,0.96);
-    border-radius:14px;
-    box-shadow:0 6px 18px rgba(0,0,0,0.18);
-    max-height:320px;
-    overflow:auto;
-    padding:10px;
 }
 
 .dropdown.open .dropdown-menu{
@@ -105,13 +133,13 @@ html,body{
     width:100%;
     border:none;
     background:#f8f9fb;
-    margin-bottom:8px;
-    padding:10px 14px;
+    margin-bottom:6px;
+    padding:8px 12px;
     border-radius:10px;
     cursor:pointer;
     text-align:left;
-    font-size:14px;
-    box-shadow:0 2px 6px rgba(0,0,0,0.12);
+    font-size:13px;
+    box-shadow:0 1px 4px rgba(0,0,0,0.1);
 }
 
 .facility-item:last-child{
@@ -120,6 +148,36 @@ html,body{
 
 .facility-item:hover{
     background:#e8edf4;
+}
+
+.legend{
+    position:absolute;
+    top:15px;
+    right:20px;
+    z-index:1000;
+    background:white;
+    padding:8px 10px;
+    border-radius:12px;
+    box-shadow:0 4px 10px rgba(0,0,0,0.2);
+    font-size:13px;
+    display:inline-grid;
+    gap:6px;
+    width:auto;
+    min-width:100px;
+}
+
+.legend-item{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin:0;
+}
+
+.legend-color{
+    width:10px;
+    height:10px;
+    border-radius:50%;
+    display:inline-block;
 }
 
 .leaflet-popup-content{
@@ -134,12 +192,23 @@ html,body{
 🏕️ Penn Meadow Farm Map
 </div>
 
+
 <button class="locate" onclick="goToMe()">
 📍 Locate Me
 </button>
-<div class="dropdown" id="facility-dropdown">
-    <button class="dropdown-button" onclick="toggleDropdown()">Facility key ▼</button>
-    <div class="dropdown-menu" id="facility-controls"></div>
+<div class="dropdown-row">
+    <div class="dropdown" id="facility-dropdown">
+        <button class="dropdown-button" onclick="toggleDropdown('facility-dropdown')">Facilitys ▼</button>
+        <div class="dropdown-menu" id="facility-controls"></div>
+    </div>
+    <div class="dropdown" id="animal-dropdown">
+        <button class="dropdown-button" onclick="toggleDropdown('animal-dropdown')">Animals ▼</button>
+        <div class="dropdown-menu" id="animal-controls"></div>
+    </div>
+    <div class="dropdown" id="pub-dropdown">
+        <button class="dropdown-button" onclick="toggleDropdown('pub-dropdown')">Pubs ▼</button>
+        <div class="dropdown-menu" id="pub-controls"></div>
+    </div>
 </div>
 
 <div id="map"></div>
@@ -193,11 +262,11 @@ function colouredMarker(colour){
 
 const facilities=[
     {
-        name:"Reception",
+        name:"Entrance",
         emoji:"🏠",
         colour:"green",
         coords:[51.620281,-0.673179],
-        info:"Check-in and campsite information."
+        info:"Entrance of the farm. Please check in at the check in desk."
     },
     {
         name:"Toilets",
@@ -224,62 +293,111 @@ const facilities=[
         name:"Shop",
         emoji:"🛒",
         colour:"red",
-        coords:[51.50738,-0.12808],
+        coords:[51.620500,-0.672000],
         info:"Camping supplies."
     },
     {
         name:"Play Area",
         emoji:"🛝",
         colour:"yellow",
-        coords:[51.50773,-0.12764],
+        coords:[51.620800,-0.672400],
         info:"Children's play area."
     }
 ];
 
+const animals=[
+    {
+        name:"Alpacas",
+        emoji:"🦙",
+        colour:"grey",
+        coords:[51.6200841,-0.6664524],
+        info:"Where the alpacas graze."
+    },
+    {
+        name:"Horse Paddock",
+        emoji:"🐎",
+        colour:"black",
+        coords:[51.6208839,-0.6709277],
+        info:"The horses are kept here."
+    }
+];
+
+const pubs=[
+    {
+        name:"The Royal Standard",
+        emoji:"🍺",
+        colour:"gold",
+        coords:[51.6186309,-0.6689087],
+        info:"Local pub and drinks."
+    }
+];
+
 const facilityMarkers = [];
+const animalMarkers = [];
+const pubMarkers = [];
 
-facilities.forEach(f=>{
-    const marker = L.marker(f.coords,{    
-        icon: colouredMarker(f.colour)
-    })
-    .addTo(map)
-    .bindPopup(`
-        <h2>${f.emoji} ${f.name}</h2>
-        <p>${f.info}</p>
-        <p><a href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(f.coords.join(','))}&travelmode=driving" target="_blank" rel="noreferrer">Get directions</a></p>
-    `);
+function createMarkers(items, markerArray){
+    items.forEach(item=>{
+        const marker = L.marker(item.coords,{    
+            icon: colouredMarker(item.colour)
+        })
+        .addTo(map)
+        .bindPopup(`
+            <h2>${item.emoji} ${item.name}</h2>
+            <p>${item.info}</p>
+            <p><a href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(item.coords.join(','))}&travelmode=driving" target="_blank" rel="noreferrer">Get directions</a></p>
+        `);
 
-    facilityMarkers.push({facility:f, marker});
-});
+        markerArray.push({item, marker});
+    });
+}
 
-const controls = document.getElementById('facility-controls');
-const dropdown = document.getElementById('facility-dropdown');
+createMarkers(facilities, facilityMarkers);
+createMarkers(animals, animalMarkers);
+createMarkers(pubs, pubMarkers);
 
-function toggleDropdown(){
-    dropdown.classList.toggle('open');
+const facilityControls = document.getElementById('facility-controls');
+const animalControls = document.getElementById('animal-controls');
+const pubControls = document.getElementById('pub-controls');
+const dropdowns = Array.from(document.querySelectorAll('.dropdown'));
+
+function toggleDropdown(id){
+    dropdowns.forEach(dropdown=>{
+        if(dropdown.id === id){
+            dropdown.classList.toggle('open');
+        } else {
+            dropdown.classList.remove('open');
+        }
+    });
 }
 
 document.addEventListener('click', (event)=>{
-    if(!dropdown.contains(event.target)){
-        dropdown.classList.remove('open');
+    if(!dropdowns.some(dropdown=>dropdown.contains(event.target))){
+        dropdowns.forEach(dropdown=>dropdown.classList.remove('open'));
     }
 });
 
-facilities.forEach(f=>{
-    const item = document.createElement('button');
-    item.type = 'button';
-    item.className = 'facility-item';
-    item.textContent = `${f.emoji} ${f.name}`;
-    item.addEventListener('click', ()=>{
-        dropdown.classList.remove('open');
-        map.flyTo(f.coords, 18, {animate:true, duration:1});
-        const entry = facilityMarkers.find(item=>item.facility === f);
-        if(entry){
-            entry.marker.openPopup();
-        }
+function buildDropdown(items, controls, markers){
+    items.forEach(item=>{
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'facility-item';
+        button.textContent = `${item.emoji} ${item.name}`;
+        button.addEventListener('click', ()=>{
+            dropdowns.forEach(dropdown=>dropdown.classList.remove('open'));
+            map.flyTo(item.coords, 18, {animate:true, duration:1});
+            const entry = markers.find(entry=>entry.item === item);
+            if(entry){
+                entry.marker.openPopup();
+            }
+        });
+        controls.appendChild(button);
     });
-    controls.appendChild(item);
-});
+}
+
+buildDropdown(facilities, facilityControls, facilityMarkers);
+buildDropdown(animals, animalControls, animalMarkers);
+buildDropdown(pubs, pubControls, pubMarkers);
 
 // ---------------------------
 // LIVE GPS
